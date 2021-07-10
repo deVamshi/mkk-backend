@@ -3,6 +3,10 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const GroceryItem = new Schema({
+  groceryType: {
+    type: String,
+    required: true,
+  },
   isInStock: {
     type: Boolean,
   },
@@ -36,4 +40,4 @@ const GroceryItem = new Schema({
   },
 });
 
-module.exports = GroceryItem;
+module.exports = mongoose.model("allGroceries", GroceryItem);
