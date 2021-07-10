@@ -1,0 +1,24 @@
+{
+  "name": "mkk-backend",
+  "version": "1.0.0",
+  "description": "Backend for mkk app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deVamshi/mkk-backend.git"
+  },
+  "author": "deVamshi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/deVamshi/mkk-backend/issues"
+  },
+  "homepage": "https://github.com/deVamshi/mkk-backend#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.13.2"
+  }
+}
