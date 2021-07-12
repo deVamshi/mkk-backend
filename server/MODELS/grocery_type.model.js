@@ -6,8 +6,10 @@ const GroceryType = new Schema(
   {
     groceryTypeName: {
       type: String,
+
       required: true,
     },
+    imgUrl: { type: String, required: true },
   },
   { timestamps: true }
 );

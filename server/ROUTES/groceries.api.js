@@ -1,12 +1,12 @@
 const express = require("express");
-const GroceryItem = require("../MODELS/grocery_item");
+const GroceryItem = require("../MODELS/grocery_item.model");
 const GroceryType = require("../MODELS/grocery_type.model");
 
 const router = express.Router();
 
-router.post("/addGroceryType", async (req, res) => {
+router.post("/addType", async (req, res) => {
   try {
-    const { groceryTypeName, groceryItems } = req.body;
+    const { groceryTypeName, imgUrl, groceryItems } = req.body;
     if (groceryItems !== null && groceryItems.length > 0) {
       let groceryItemsToAdd = [];
       groceryItems.map((ele) => {
@@ -36,7 +36,7 @@ router.post("/addGroceryType", async (req, res) => {
     if (typeExists) {
       return res.json({ msg: "Grocery Type exists" });
     } else {
-      const newGroceryType = new GroceryType({ groceryTypeName });
+      const newGroceryType = new GroceryType({ groceryTypeName, imgUrl });
       await newGroceryType.save();
       return res.json({ msg: "Grocery Type created" });
     }
@@ -46,7 +46,7 @@ router.post("/addGroceryType", async (req, res) => {
   }
 });
 
-router.post("/addGroceryItem", async (req, res) => {
+router.post("/addItem", async (req, res) => {
   const { groceryTypeName, listOfGroceryItems } = req.body;
   let updateGrocery;
   await newGroceryType.save((err) => {
@@ -55,8 +55,16 @@ router.post("/addGroceryItem", async (req, res) => {
   return res.send("Successfully created a grocery type");
 });
 
-router.get("/", (req, res) => {
-  // res.send("This actually worked dude");
+router.get("/fetchItems", async (req, res) => {
+  const { groceryType } = req.body;
+  try {
+    const fetchedGroceryItems = await GroceryItem.find({
+      groceryType: groceryType,
+    }).exec();
+    res.send({ data: [...fetchedGroceryItems], success: true });
+  } catch (e) {
+    console.log(e);
+  }
 });
 
 module.exports = router;
