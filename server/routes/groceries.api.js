@@ -1,6 +1,6 @@
 const express = require("express");
-const GroceryItem = require("../MODELS/grocery_item.model");
-const GroceryType = require("../MODELS/grocery_type.model");
+const GroceryItem = require("../models/grocery_item.model");
+const GroceryType = require("../models/grocery_type.model");
 
 const router = express.Router();
 
@@ -28,7 +28,7 @@ router.post("/addType", async (req, res) => {
       });
       await GroceryItem.insertMany(groceryItemsToAdd, (err) => {
         if (err) {
-          console.log(err);
+          console.error(err);
         }
       });
     }
@@ -55,15 +55,16 @@ router.post("/addItem", async (req, res) => {
   return res.send("Successfully created a grocery type");
 });
 
-router.get("/fetchItems", async (req, res) => {
-  const { groceryType } = req.body;
+router.get("/items", async (req, res) => {
   try {
+    const groceryType = req.query.groceryType;
     const fetchedGroceryItems = await GroceryItem.find({
       groceryType: groceryType,
     }).exec();
-    res.send({ data: [...fetchedGroceryItems], success: true });
+    res.json({ data: [...fetchedGroceryItems], success: true });
   } catch (e) {
-    console.log(e);
+    console.error(e);
+    res.status(500).json({ msg: "Internal Server Error" });
   }
 });
 
