@@ -5,22 +5,34 @@ const router = express.Router();
 
 router.post("/create", async (req, res) => {
   const { phoneNumber, products, address, ringBell } = req.body;
-  let productMap = {};
+  let productMap = [];
   try {
     Object.keys(products).forEach((key) => {
-      productMap[key] = products[key];
+      productMap.push({ productId: key, quantity: products[key] });
     });
-    let query = { userId: phoneNumber };
-    let content = {
-      dd: new Date().toISOString().slice(0, 10),
-      products: productMap,
-      userId: phoneNumber,
-      address: address,
-      ringBell,
-    };
-    let options = { upsert: true, new: true };
 
-    const placedOrder = await Order.findOneAndUpdate(query, content, options);
+    let orderExists = await Order.exists({
+      userId: phoneNumber,
+      dd: new Date().toISOString().slice(0, 10),
+    });
+    if (orderExists) {
+      const updatedOrder = await Order.findOneAndUpdate({
+        ringBell,
+        address,
+        products: productMap,
+      });
+      return res.send(updatedOrder);
+    } else {
+      let content = {
+        dd: new Date().toISOString().slice(0, 10),
+        products: productMap,
+        userId: phoneNumber,
+        address: address,
+        ringBell,
+      };
+      const placedOrder = await Order.create(content);
+      return res.send(placedOrder);
+    }
 
     res.send(placedOrder);
   } catch (err) {
