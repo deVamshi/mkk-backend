@@ -14,6 +14,7 @@ const dbConnect = async () => {
     console.log("Mongo DB connected " + conn.connection.host);
   } catch (e) {
     console.log(e);
+    throw "Failed to connect to DB";
   }
 };
 

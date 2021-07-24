@@ -1,5 +1,6 @@
 const express = require("express");
 const Order = require("../models/order.model");
+const GroceryItem = require("../models/grocery_item.model");
 
 const router = express.Router();
 
@@ -33,8 +34,6 @@ router.post("/create", async (req, res) => {
       const placedOrder = await Order.create(content);
       return res.send(placedOrder);
     }
-
-    res.send(placedOrder);
   } catch (err) {
     console.log(err);
     res.status(500).json({ msg: "Internal Server Error", success: false });
@@ -43,15 +42,30 @@ router.post("/create", async (req, res) => {
 
 router.get("/fetch", async (req, res) => {
   const { date, isAdmin, phoneNumber } = req.query;
+  let productIds = [];
+  let actualProducts = [];
   try {
-    if (isAdmin != null && isAdmin != false) {
+    if (isAdmin) {
       const orderData = await Order.find({ dd: date });
-      return res.json({ orderData: orderData });
+
+      if (orderData != null) {
+        for await (let order of orderData) {
+          for await (let product of order["products"]) {
+            let item = await GroceryItem.findById(product["productId"]).exec();
+            actualProducts.push(item);
+          }
+        }
+      }
+      return res.json({
+        orderData: orderData == null ? [] : orderData,
+        listOfProducts: actualProducts,
+      });
     } else {
       const orderData = await Order.findOne({ dd: date, userId: phoneNumber });
       return res.json({ orderData: orderData == null ? [] : orderData });
     }
   } catch (err) {
+    console.error(err);
     res.status(500).send("Internal Sever Error");
   }
 });
