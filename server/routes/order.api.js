@@ -18,10 +18,11 @@ router.post("/create", async (req, res) => {
     });
     if (orderExists) {
       const updatedOrder = await Order.findOneAndUpdate({
+        userId: phoneNumber,
         ringBell,
         address,
         products: productMap,
-      });
+      }).lean();
       return res.send(updatedOrder);
     } else {
       let content = {
@@ -41,7 +42,10 @@ router.post("/create", async (req, res) => {
 });
 
 router.get("/fetch", async (req, res) => {
-  const { date, isAdmin, phoneNumber } = req.query;
+  const { date, phoneNumber } = req.query;
+  const isAdmin = req.header("isAdmin");
+  console.log(isAdmin);
+
   let productIds = [];
   let actualProducts = [];
   try {
@@ -51,7 +55,7 @@ router.get("/fetch", async (req, res) => {
       if (orderData != null) {
         for await (let order of orderData) {
           for await (let product of order["products"]) {
-            let item = await GroceryItem.findById(product["productId"]).exec();
+            let item = await GroceryItem.findById(product["productId"]).lean();
             actualProducts.push(item);
           }
         }

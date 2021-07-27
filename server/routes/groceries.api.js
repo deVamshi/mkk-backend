@@ -9,7 +9,28 @@ router.post("/addType", async (req, res) => {
     const { groceryTypeName, imgUrl, groceryItems } = req.body;
     if (groceryItems !== null && groceryItems.length > 0) {
       let groceryItemsToAdd = [];
+
       groceryItems.map((ele) => {
+        if (ele.varieties !== null && ele.varieties.length > 0) {
+          ele.varieties.map((variety) => {
+            groceryItemsToAdd.push(
+              new GroceryItem({
+                groceryType: groceryTypeName,
+                isInStock: variety.isInStock,
+                isRecursive: variety.isRecursive,
+                placeOfOrigin: variety.placeOfOrigin,
+                nameOfTheProduct: variety.nameOfTheProduct,
+                mrp: variety.mrp,
+                sellingPrice: variety.sellingPrice,
+                quantity: variety.quantity,
+                unitOfMesurment: variety.unitOfMesurment,
+                imgUrl: variety.imgUrl,
+                varieties: [],
+                isVariety: true,
+              })
+            );
+          });
+        }
         groceryItemsToAdd.push(
           new GroceryItem({
             groceryType: groceryTypeName,
@@ -26,20 +47,22 @@ router.post("/addType", async (req, res) => {
           })
         );
       });
-      await GroceryItem.insertMany(groceryItemsToAdd, (err) => {
-        if (err) {
-          console.error(err);
-        }
-      });
+
+    // await GroceryItem.insertMany(groceryItemsToAdd, (err) => {
+      //   if (err) {
+      //     console.error(err);
+      //   }
+      // });
     }
-    const typeExists = await GroceryType.exists({ groceryTypeName });
-    if (typeExists) {
-      return res.json({ msg: "Grocery Type exists" });
-    } else {
-      const newGroceryType = new GroceryType({ groceryTypeName, imgUrl });
-      await newGroceryType.save();
-      return res.json({ msg: "Grocery Type created" });
-    }
+    // const typeExists = await GroceryType.exists({ groceryTypeName });
+    // if (typeExists) {
+    //   return res.json({ msg: "Grocery Type exists" });
+    // } else {
+    //   const newGroceryType = new GroceryType({ groceryTypeName, imgUrl });
+    //   await newGroceryType.save();
+    //   return res.json({ msg: "Grocery Type created" });
+    // }
+    res.send();
   } catch (e) {
     console.log(e);
     res.status(500).send({ msg: "Internal server error" });
@@ -60,6 +83,7 @@ router.get("/items", async (req, res) => {
     const groceryType = req.query.groceryType;
     const fetchedGroceryItems = await GroceryItem.find({
       groceryType: groceryType,
+      isVariety: false,
     }).exec();
     res.json({ data: [...fetchedGroceryItems], success: true });
   } catch (e) {

@@ -34,10 +34,14 @@ const GroceryItem = new Schema({
   imgUrl: {
     type: String,
   },
+  isVariety: {
+    type: Boolean,
+    default: false,
+  },
   varieties: {
     type: [],
     default: [],
   },
 });
 
-module.exports = mongoose.model("allGroceries", GroceryItem);
+module.exports = mongoose.model("groceries", GroceryItem);
