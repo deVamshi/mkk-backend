@@ -12,29 +12,21 @@ router.post("/create", async (req, res) => {
       productMap.push({ productId: key, quantity: products[key] });
     });
 
-    let orderExists = await Order.exists({
-      userId: phoneNumber,
-      dd: new Date().toISOString().slice(0, 10),
-    });
-    if (orderExists) {
-      const updatedOrder = await Order.findOneAndUpdate({
+    const createdOrder = await Order.findOneAndUpdate(
+      {
         userId: phoneNumber,
+        dd: new Date().toISOString().slice(0, 10),
+      },
+      {
+        userId: phoneNumber,
+        dd: new Date().toISOString().slice(0, 10),
         ringBell,
         address,
         products: productMap,
-      }).lean();
-      return res.send(updatedOrder);
-    } else {
-      let content = {
-        dd: new Date().toISOString().slice(0, 10),
-        products: productMap,
-        userId: phoneNumber,
-        address: address,
-        ringBell,
-      };
-      const placedOrder = await Order.create(content);
-      return res.send(placedOrder);
-    }
+      },
+      { new: true }
+    ).lean();
+    res.send(createdOrder);
   } catch (err) {
     console.log(err);
     res.status(500).json({ msg: "Internal Server Error", success: false });
@@ -43,31 +35,31 @@ router.post("/create", async (req, res) => {
 
 router.get("/fetch", async (req, res) => {
   const { date, phoneNumber } = req.query;
-  const isAdmin = req.header("isAdmin");
-  console.log(isAdmin);
+  const isAdmin = req.get("isAdmin");
 
-  let productIds = [];
-  let actualProducts = [];
+  let listOfProducts = [];
+  let orderData;
   try {
     if (isAdmin) {
-      const orderData = await Order.find({ dd: date });
-
-      if (orderData != null) {
-        for await (let order of orderData) {
-          for await (let product of order["products"]) {
-            let item = await GroceryItem.findById(product["productId"]).lean();
-            actualProducts.push(item);
-          }
+      orderData = await Order.find({ dd: date });
+    } else {
+      orderData = await Order.findOne({ dd: date, userId: phoneNumber });
+    }
+    if (orderData != null) {
+      for await (let order of orderData) {
+        for await (let product of order["products"]) {
+          let item = await GroceryItem.findById(product["productId"]).lean();
+          listOfProducts.push(item);
         }
       }
-      return res.json({
-        orderData: orderData == null ? [] : orderData,
-        listOfProducts: actualProducts,
-      });
-    } else {
-      const orderData = await Order.findOne({ dd: date, userId: phoneNumber });
-      return res.json({ orderData: orderData == null ? [] : orderData });
     }
+    return res.json({
+      data: {
+        orderData: orderData == null ? [] : orderData,
+        listOfProducts: listOfProducts,
+      },
+      success: true,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send("Internal Sever Error");

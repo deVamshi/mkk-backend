@@ -42,6 +42,9 @@ const GroceryItem = new Schema({
     type: [],
     default: [],
   },
+  varietyOf: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model("groceries", GroceryItem);
