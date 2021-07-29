@@ -12,20 +12,36 @@ router.post("/create", async (req, res) => {
       productMap.push({ productId: key, quantity: products[key] });
     });
 
-    const createdOrder = await Order.findOneAndUpdate(
-      {
-        userId: phoneNumber,
-        dd: new Date().toISOString().slice(0, 10),
-      },
-      {
+    const orderExists = await Order.exists({
+      userId: phoneNumber,
+      dd: new Date().toISOString().slice(0, 10),
+    });
+    let createdOrder;
+    if (orderExists) {
+      createdOrder = await Order.findOneAndUpdate(
+        {
+          userId: phoneNumber,
+          dd: new Date().toISOString().slice(0, 10),
+        },
+        {
+          userId: phoneNumber,
+          dd: new Date().toISOString().slice(0, 10),
+          ringBell,
+          address,
+          products: productMap,
+        },
+        { new: true }
+      ).lean();
+    } else {
+      createdOrder = await Order.create({
         userId: phoneNumber,
         dd: new Date().toISOString().slice(0, 10),
         ringBell,
         address,
         products: productMap,
-      },
-      { new: true }
-    ).lean();
+      });
+    }
+
     res.send(createdOrder);
   } catch (err) {
     console.log(err);
