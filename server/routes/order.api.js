@@ -44,34 +44,50 @@ router.post("/create", async (req, res) => {
 
     res.send(createdOrder);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ msg: "Internal Server Error", success: false });
   }
 });
 
 router.get("/fetch", async (req, res) => {
-  const { date, phoneNumber } = req.query;
+  let { date, phoneNumber } = req.query;
   const isAdmin = req.get("isAdmin");
 
+  if (date == null) {
+    date = new Date().toISOString().slice(0, 10);
+  }
+
   let listOfProducts = [];
-  let orderData;
+  let adminOrders;
+  let userOrder;
   try {
     if (isAdmin) {
-      orderData = await Order.find({ dd: date });
+      adminOrders = await Order.find({
+        dd: new Date().toISOString().slice(0, 10),
+      });
+      if (adminOrders != null) {
+        for await (let order of adminOrders) {
+          for await (let product of order["products"]) {
+            let item = await GroceryItem.findById(product["productId"]).lean();
+            listOfProducts.push(item);
+          }
+        }
+      } else {
+        adminOrders = [];
+      }
     } else {
-      orderData = await Order.findOne({ dd: date, userId: phoneNumber });
-    }
-    if (orderData != null) {
-      for await (let order of orderData) {
-        for await (let product of order["products"]) {
+      userOrder = await Order.findOne({ dd: date, userId: phoneNumber }).lean();
+      if (userOrder != null) {
+        for await (let product of userOrder["products"]) {
           let item = await GroceryItem.findById(product["productId"]).lean();
           listOfProducts.push(item);
         }
       }
     }
+
     return res.json({
       data: {
-        orderData: orderData == null ? [] : orderData,
+        orderData: isAdmin ? adminOrders : userOrder == null ? [] : [userOrder],
         listOfProducts: listOfProducts,
       },
       success: true,

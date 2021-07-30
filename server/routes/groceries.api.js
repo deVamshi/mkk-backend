@@ -48,7 +48,7 @@ router.post("/addType", async (req, res) => {
               quantity: ele.quantity,
               unitOfMesurment: ele.unitOfMesurment,
               imgUrl: ele.imgUrl,
-              varieties: ele.varieties,
+              varieties: [],
             })
           );
         });
