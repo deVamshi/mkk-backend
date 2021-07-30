@@ -14,7 +14,7 @@ app.use("/grocery", groceriesApi);
 app.use("/order", ordersApi);
 
 app.get("/", (req, res) => {
-  res.status(200).send("Hello world");
+  res.status(200).send("YUP!");
 });
 
 dbConnect()
